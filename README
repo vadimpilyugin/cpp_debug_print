@@ -1,0 +1,7 @@
+A simple library for debug output in console.
+Just include printer.h, you don't have to link it.
+Features:
+- 5 different output messages: debug, assert, note, error and fatal
+- Each message has its own color: for example, debug messages are green
+- Two exception types: FatalException and AssertException. If assertion was failed
+  then an exception is raised. FatalException is raised whenever a fatal() method is called.
