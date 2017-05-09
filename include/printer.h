@@ -82,12 +82,12 @@ public:
       std::cerr << note_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
       // fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());  	
   }
-  static void error(std::string msg = empty_msg, std::string who = assert_msg)
+  static void error(std::string msg = empty_msg, std::string who = error_msg)
   {
   	// fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());
     std::cerr << error_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
   }
-  static void fatal(std::string msg = empty_msg, std::string who = assert_msg)
+  static void fatal(std::string msg = empty_msg, std::string who = fatal_msg)
   {
   	// fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());
     std::cerr << fatal_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
