@@ -4,7 +4,7 @@ int main(int argc, char **argv)
 {
 	if(argc != 6)
 	{
-		fprintf(stderr, "Usage: printer <arg1> <arg2> <arg3> <arg4> <arg5>\n");
+		Printer::fatal("printer <arg1> <arg2> <arg3> <arg4> <arg5>", "Usage");
 	}
 	else
 	{
@@ -13,9 +13,9 @@ int main(int argc, char **argv)
 		{
 			Printer::assert(false, argv[2], "Assert message");
 		}
-		catch(AssertException &a)
+		catch(Printer::AssertException &a)
 		{
-			printf("Caught AssertException instance, msg: %s\n", a.msg());
+			Printer::debug(a.what(), "Caught AssertException instance, msg");
 		}
 		Printer::note(argv[3], "Note message");
 		Printer::error(argv[4], "Error message");
@@ -23,9 +23,9 @@ int main(int argc, char **argv)
 		{
 			Printer::fatal(argv[5], "Fatal error");
 		}
-		catch(FatalException &a)
+		catch(Printer::FatalException &a)
 		{
-			printf("Caught AssertException instance, msg: %s\n", a.msg());
+			Printer::debug(a.what(), "Caught AssertException instance, msg");
 		}
 		for(int i = 0; i <= 200000; i++) {
 			std::string s = std::to_string(i);

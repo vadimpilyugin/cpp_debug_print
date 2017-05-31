@@ -1,119 +1,112 @@
 #include <string>
 #include <iostream>
-// #include <stdio.h>
+#include <exception>
 
-class Exception
-{
-  std::string exc_msg;
-public:
-  Exception(std::string _msg = std::string()): exc_msg(_msg) {}
-  const char *msg()
-  {
-  	return exc_msg.c_str();
-  }
-};
+namespace Printer {
 
-class AssertException: public Exception
-{
-  using Exception::Exception;
-};
-class FatalException: public Exception
-{
-  using Exception::Exception;
-};
-
-class Printer
-{
-  static const std::string debug_msg_color;
-  static const std::string assert_msg_color;
-  static const std::string error_msg_color;
-  static const std::string fatal_msg_color;
-  static const std::string note_msg_color;
-  static const std::string msg_color;
-
-  static const std::string debug_msg;
-  static const std::string assert_msg;
-  static const std::string error_msg;
-  static const std::string fatal_msg;
-  static const std::string note_msg;
-  static const std::string empty_msg;
-
-  static const char black[];
-  static const char red[];
-  static const char green[];
-  static const char yellow[];
-  static const char blue[];
-  static const char magenta[];
-  static const char cyan[];
-  static const char white[];
-
-public:
   /*
+  * Исключение, бросаемое в fatal или assert
+  */ 
 
-  msg - provides a message to output
-  who - provides a name before the :
-  in_place - \r instead of \n. Useful when output is inside a cycle
-  expr - boolean expression that is checked in assertion
+  class Exception: public std::exception
+  {
+    std::string exc_msg;
+  public:
+    Exception(std::string _msg = std::string()): exc_msg(_msg) {}
+    virtual const char *what() const noexcept {
+      return exc_msg.c_str();
+    }
+  };
 
+  class AssertException: public Exception
+  {
+    using Exception::Exception;
+  };
+  class FatalException: public Exception
+  {
+    using Exception::Exception;
+  };
+
+
+
+  static const char black[]   = { 0x1b, '[', '1', ';', '3', '0', 'm', 0 };
+  static const char red[]     = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
+  static const char green[]   = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
+  static const char yellow[]  = { 0x1b, '[', '1', ';', '3', '3', 'm', 0 };
+  static const char blue[]    = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+  static const char magenta[] = { 0x1b, '[', '1', ';', '3', '5', 'm', 0 };
+  static const char cyan[]    = { 0x1b, '[', '1', ';', '3', '6', 'm', 0 };
+  static const char white[]   = { 0x1b, '[', '1', ';', '3', '7', 'm', 0 };
+
+  namespace detail {
+    /*
+    * Сообщения по умолчанию, выводящиеся перед двоеточием
+    */
+    static const std::string debug_msg  = std::string("Debug");
+    static const std::string assert_msg = std::string("Assertion failed");
+    static const std::string error_msg  = std::string("Error");
+    static const std::string fatal_msg  = std::string("Fatal error");
+    static const std::string note_msg   = std::string("Note");
+    static const std::string empty_msg  = std::string("");
+    /*
+    * Символы для разделения сообщения и отправителя
+    */
+    static const std::string delim = std::string(": ");
+    /*
+    * Символы для перевода строки
+    */
+    static const std::string cr = std::string("\r");
+    static const std::string lf = std::string("\n");
+    // static const std::string debug_msg_color  = std::string(green);
+    // static const std::string assert_msg_color = std::string(red);
+    // static const std::string error_msg_color  = std::string(red);
+    // static const std::string fatal_msg_color  = std::string(red);
+    // static const std::string note_msg_color   = std::string(yellow);
+    // static const std::string msg_color        = std::string(white);
+    /*
+    * Функция вывода сообщения с именем отправителя. Занимается форматированием, цветом, выводом
+    */
+    static void generic(  const std::string msg, const std::string who, const std::string who_color,
+                          const bool in_place = false, const std::string msg_color = white,
+                          const std::string delim = detail::delim, const bool newline = true ) {
+      std::cerr << who_color << who << delim << msg_color << msg;
+      if(newline) {
+        if(in_place)
+          std::cerr << detail::cr;
+        else
+          std::cerr << detail::lf;
+      }
+    }
+  }
+  /*
+  * Описания функций вывода
+  * msg - сообщение, которое нужно вывести
+  * who - то, что стоит перед :
+  * in_place - \r вместо \n в конце строки. Нужно для счетчиков
+  * expr - условие, проверяемое в assert
   */
-  static void debug(std::string msg = empty_msg, std::string who = debug_msg, bool in_place = false)
-  {
-  	if(in_place)
-      std::cerr << debug_msg_color << who.c_str() << white << ": " << msg.c_str() << "\r";
-  	  // fprintf(stderr, "%s: %s\r", who.c_str(), msg.c_str());
-  	else
-      std::cerr << debug_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
-      // fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());
+
+  static void debug(const std::string msg = detail::empty_msg, const std::string who = detail::debug_msg, const bool in_place = false) {
+    detail::generic(msg, who, green, in_place);
   }
-  static void assert(bool expr, std::string msg = empty_msg, std::string who = assert_msg)
-  {
-  	if(!expr) {
-  	  // fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());
-      std::cerr << assert_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
-  	  throw AssertException(msg);
-  	}
+  static void assert(const bool expr, std::string msg = detail::empty_msg, const std::string who = detail::assert_msg) {
+    if(!expr) {
+      detail::generic(msg, who, red);
+      throw AssertException(msg);
+    }
   }
-  static void note(std::string msg = empty_msg, std::string who = note_msg, bool in_place = false)
-  {
-  	if(in_place)
-      std::cerr << note_msg_color << who.c_str() << white << ": " << msg.c_str() << "\r";
-  	  // fprintf(stderr, "%s: %s\r", who.c_str(), msg.c_str());
-  	else
-      std::cerr << note_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
-      // fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());  	
+  static void note(const std::string msg = detail::empty_msg, const std::string who = detail::note_msg, const bool in_place = false) {
+    detail::generic(msg, who, yellow, in_place);
   }
-  static void error(std::string msg = empty_msg, std::string who = error_msg)
-  {
-  	// fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());
-    std::cerr << error_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
+  static void error(const std::string msg = detail::empty_msg, const std::string who = detail::error_msg) {
+    detail::generic(msg, who, red);
   }
-  static void fatal(std::string msg = empty_msg, std::string who = fatal_msg)
+  static void fatal(const std::string msg = detail::empty_msg, const std::string who = detail::fatal_msg)
   {
-  	// fprintf(stderr, "%s: %s\n", who.c_str(), msg.c_str());
-    std::cerr << fatal_msg_color << who.c_str() << white << ": " << msg.c_str() << "\n";
-  	throw FatalException(msg);
+    detail::generic(msg, who, red);
+    throw FatalException(msg);
+  }
+  static void prompt(const std::string prompt_msg = detail::empty_msg) {
+    detail::generic(detail::empty_msg, prompt_msg, white, false, white, "> ", false);
   }
 };
-
-  const std::string Printer::msg_color = std::string("white");
-  const std::string Printer::debug_msg = std::string("Debug");
-  const std::string Printer::assert_msg = std::string("Assertion failed");
-  const std::string Printer::error_msg = std::string("Error");
-  const std::string Printer::fatal_msg = std::string("Fatal error");
-  const std::string Printer::note_msg = std::string("Note");
-  const std::string Printer::empty_msg = std::string("");
-
-  const char Printer::black[] = { 0x1b, '[', '1', ';', '3', '0', 'm', 0 };
-  const char Printer::red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
-  const char Printer::green[] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
-  const char Printer::yellow[] = { 0x1b, '[', '1', ';', '3', '3', 'm', 0 };
-  const char Printer::blue[] = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
-  const char Printer::magenta[] = { 0x1b, '[', '1', ';', '3', '5', 'm', 0 };
-  const char Printer::cyan[] = { 0x1b, '[', '1', ';', '3', '6', 'm', 0 };
-  const char Printer::white[] = { 0x1b, '[', '1', ';', '3', '7', 'm', 0 };
-
-  const std::string Printer::debug_msg_color = std::string(Printer::green);
-  const std::string Printer::assert_msg_color = std::string(Printer::red);
-  const std::string Printer::error_msg_color = std::string(Printer::red);
-  const std::string Printer::fatal_msg_color = std::string(Printer::red);
-  const std::string Printer::note_msg_color = std::string(Printer::yellow);
