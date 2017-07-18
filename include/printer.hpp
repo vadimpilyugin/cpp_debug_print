@@ -1,3 +1,6 @@
+#pragma once
+#define DEBUG 1
+
 #include <string>
 #include <iostream>
 #include <exception>
@@ -66,9 +69,9 @@ namespace Printer {
     /*
     * Функция вывода сообщения с именем отправителя. Занимается форматированием, цветом, выводом
     */
-    static void generic(  const std::string msg, const std::string who, const std::string who_color,
-                          const bool in_place = false, const std::string msg_color = white,
-                          const std::string delim = detail::delim, const bool newline = true ) {
+    static void generic(  const std::string &msg, const std::string &who, const std::string &who_color,
+                          const bool in_place = false, const std::string &msg_color = white,
+                          const std::string &delim = detail::delim, const bool newline = true ) {
       std::cerr << who_color << who << delim << msg_color << msg;
       if(newline) {
         if(in_place)
@@ -87,7 +90,9 @@ namespace Printer {
   */
 
   static void debug(const std::string msg = detail::empty_msg, const std::string who = detail::debug_msg, const bool in_place = false) {
+    #if DEBUG
     detail::generic(msg, who, green, in_place);
+    #endif
   }
   static void assert(const bool expr, std::string msg = detail::empty_msg, const std::string who = detail::assert_msg) {
     if(!expr) {

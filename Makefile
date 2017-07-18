@@ -1,10 +1,10 @@
 .PHONY: all
 all: build/printer
 
-build/printer.o: src/printer.cpp include/printer.h
+build/printer.o: src/printer.cpp include/printer.hpp
 	
 
-build/printer: src/main.cpp include/printer.h
+build/printer: src/main.cpp include/printer.hpp
 	clear; clear; mkdir -p build;
 	g++ -std=c++11 -o build/printer -I include/ src/main.cpp
 
