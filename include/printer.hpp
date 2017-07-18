@@ -2,8 +2,11 @@
 #define DEBUG 1
 
 #include <string>
+#include <map>
 #include <iostream>
 #include <exception>
+
+using Hash = std::map<std::string,std::string>;
 
 namespace Printer {
 
@@ -70,14 +73,19 @@ namespace Printer {
     * Функция вывода сообщения с именем отправителя. Занимается форматированием, цветом, выводом
     */
     static void generic(  const std::string &msg, const std::string &who, const std::string &who_color,
-                          const bool in_place = false, const std::string &msg_color = white,
-                          const std::string &delim = detail::delim, const bool newline = true ) {
+                          const bool in_place = false, const Hash &params = {}, 
+                          const std::string &msg_color = white,
+                          const std::string &delim = detail::delim, const bool newline = true) {
       std::cerr << who_color << who << delim << msg_color << msg;
       if(newline) {
         if(in_place)
           std::cerr << detail::cr;
-        else
+        else {
           std::cerr << detail::lf;
+          for (const auto &pair: params) {
+            std::cerr << "\t" << green << pair.first << delim << white << pair.second << detail::lf;
+        }
+        }
       }
     }
   }
@@ -89,29 +97,29 @@ namespace Printer {
   * expr - условие, проверяемое в assert
   */
 
-  static void debug(const std::string msg = detail::empty_msg, const std::string who = detail::debug_msg, const bool in_place = false) {
+  static void debug(const std::string msg = detail::empty_msg, const std::string who = detail::debug_msg, const Hash &params = {}, const bool in_place = false) {
     #if DEBUG
-    detail::generic(msg, who, green, in_place);
+    detail::generic(msg, who, green, in_place, params);
     #endif
   }
-  static void assert(const bool expr, std::string msg = detail::empty_msg, const std::string who = detail::assert_msg) {
+  static void assert(const bool expr, std::string msg = detail::empty_msg, const std::string who = detail::assert_msg, const Hash &params = {}) {
     if(!expr) {
-      detail::generic(msg, who, red);
+      detail::generic(msg, who, red, false, params);
       throw AssertException(msg);
     }
   }
-  static void note(const std::string msg = detail::empty_msg, const std::string who = detail::note_msg, const bool in_place = false) {
-    detail::generic(msg, who, yellow, in_place);
+  static void note(const std::string msg = detail::empty_msg, const std::string who = detail::note_msg, const Hash &params = {}, const bool in_place = false) {
+    detail::generic(msg, who, yellow, in_place, params);
   }
-  static void error(const std::string msg = detail::empty_msg, const std::string who = detail::error_msg) {
-    detail::generic(msg, who, red);
+  static void error(const std::string msg = detail::empty_msg, const std::string who = detail::error_msg, const Hash &params = {}) {
+    detail::generic(msg, who, red, false, params);
   }
-  static void fatal(const std::string msg = detail::empty_msg, const std::string who = detail::fatal_msg)
+  static void fatal(const std::string msg = detail::empty_msg, const std::string who = detail::fatal_msg, const Hash &params = {})
   {
-    detail::generic(msg, who, red);
+    detail::generic(msg, who, red, false, params);
     throw FatalException(msg);
   }
   static void prompt(const std::string prompt_msg = detail::empty_msg) {
-    detail::generic(detail::empty_msg, prompt_msg, white, false, white, "> ", false);
+    detail::generic(detail::empty_msg, prompt_msg, white, false, {}, white, "> ", false);
   }
 };
